@@ -1,0 +1,114 @@
+From 1ad86c36f34a75dbc59526c08c5b6f2384f353c3 Mon Sep 17 00:00:00 2001
+From: Kevin Scholz <thucommix@gmx.net>
+Date: Mon, 9 Nov 2026 15:39:54 +0100
+Subject: [PATCH] fix(Hardware Support): correct face button mapping for
+ Nintendo layout devices
+
+The kernel reports the face buttons by physical position on the
+Nintendo-style layout: A (top right) as BTN_EAST, B (bottom right)
+as BTN_SOUTH, X (bottom left) as BTN_WEST and Y (top left) as
+BTN_NORTH. The previous map swapped NORTH/WEST, so A was reported
+as B, B as A, X as Y and Y as X.
+
+Swap the A and B sources instead so the Xbox-style target emits
+BTN_SOUTH for A and BTN_EAST for B. X and Y already line up with
+the Xbox layout.
+---
+ .../capability_maps/retroid_type1.yaml        | 21 +++++++++++--------
+ .../capability_maps/rsinput_type1.yaml        | 21 +++++++++++--------
+ 2 files changed, 24 insertions(+), 18 deletions(-)
+
+diff --git a/rootfs/usr/share/inputplumber/capability_maps/retroid_type1.yaml b/rootfs/usr/share/inputplumber/capability_maps/retroid_type1.yaml
+index 6566c41..14ecad3 100644
+--- a/rootfs/usr/share/inputplumber/capability_maps/retroid_type1.yaml
++++ b/rootfs/usr/share/inputplumber/capability_maps/retroid_type1.yaml
+@@ -55,29 +55,32 @@ mapping:
+       gamepad:
+         button: QuickAccess
+ 
+-  # Kernel reports NORTH/WEST by physical position, but Xbox layout 
+-  # relies on these swapped. This results in NORTH/WEST swapped in
+-  # evtest, but produces expected behaviour in games.
++  # The kernel reports the face buttons by physical position on the
++  # Nintendo-style layout: A (top right) as BTN_EAST, B (bottom right)
++  # as BTN_SOUTH, X (bottom left) as BTN_WEST and Y (top left) as
++  # BTN_NORTH. The Xbox layout has A as BTN_SOUTH and B as BTN_EAST, so
++  # A and B need to be swapped here. X and Y already line up with the
++  # Xbox layout.
+ 
+-  - name: West Button
++  - name: A Button
+     source_events:
+       - evdev:
+           event_type: KEY
+-          event_code: BTN_NORTH
++          event_code: BTN_EAST
+           value_type: button
+     target_event:
+       gamepad:
+-        button: West
++        button: South
+ 
+-  - name: North Button
++  - name: B Button
+     source_events:
+       - evdev:
+           event_type: KEY
+-          event_code: BTN_WEST
++          event_code: BTN_SOUTH
+           value_type: button
+     target_event:
+       gamepad:
+-        button: North
++        button: East
+ 
+   - name: Right Trigger
+     source_events:
+diff --git a/rootfs/usr/share/inputplumber/capability_maps/rsinput_type1.yaml b/rootfs/usr/share/inputplumber/capability_maps/rsinput_type1.yaml
+index 728a01e..5e3a305 100644
+--- a/rootfs/usr/share/inputplumber/capability_maps/rsinput_type1.yaml
++++ b/rootfs/usr/share/inputplumber/capability_maps/rsinput_type1.yaml
+@@ -75,28 +75,31 @@ mapping:
+       gamepad:
+         button: RightPaddle1
+ 
+-  # Kernel reports NORTH/WEST by physical position, but Xbox layout 
+-  # relies on these swapped. This results in NORTH/WEST swapped in
+-  # evtest, but produces expected behaviour in games.
++  # The kernel reports the face buttons by physical position on the
++  # Nintendo-style layout: A (top right) as BTN_EAST, B (bottom right)
++  # as BTN_SOUTH, X (bottom left) as BTN_WEST and Y (top left) as
++  # BTN_NORTH. The Xbox layout has A as BTN_SOUTH and B as BTN_EAST, so
++  # A and B need to be swapped here. X and Y already line up with the
++  # Xbox layout.
+ 
+-  - name: West Button
++  - name: A Button
+     source_events:
+       - evdev:
+           event_type: KEY
+-          event_code: BTN_NORTH
++          event_code: BTN_EAST
+           value_type: button
+     target_event:
+       gamepad:
+-        button: West
++        button: South
+ 
+-  - name: North Button
++  - name: B Button
+     source_events:
+       - evdev:
+           event_type: KEY
+-          event_code: BTN_WEST
++          event_code: BTN_SOUTH
+           value_type: button
+     target_event:
+       gamepad:
+-        button: North
++        button: East
+ 
+ filtered_events: []
+-- 
+2.54.0 (Apple Git-157)
+

@@ -19,3 +19,6 @@ to a commit, or `armada` if it's original; a URL source with no `notes` is verba
   source: armada
 - `patches/0008-feat-ssc-suspend-source-devices-across-system-sleep.patch`
   source: armada
+- `patches/0009-fix-Hardware-Support-correct-face-button-mapping-for.patch`
+  source: armada
+  notes: The kernel reports face buttons by physical position on Nintendo-layout devices (A top-right as BTN_EAST, B bottom-right as BTN_SOUTH, X bottom-left as BTN_WEST, Y top-left as BTN_NORTH). Upstream swapped NORTH/WEST, which left A as B, B as A, X as Y and Y as X. The map now swaps the A and B sources; X and Y already line up with the Xbox layout. Verified on Retroid Pocket 5 and Pocket 6; the map is shared with Retroid Pocket Mini/Nova and AYN Odin 2/3.
