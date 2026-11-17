@@ -60,6 +60,30 @@ grep -q -- '--exclude scx_nitosis' "${SPEC}" || {
   exit 1
 }
 
+# libbpf-sys 1.7.0 vendors a libbpf whose linux/types.h shadows the kernel's
+# and lacks __u128, which newer arm64 UAPI headers (asm/sigcontext.h,
+# asm/ptrace.h) use. Backport libbpf f90a9c487d75, matching Terra's current
+# scx-scheds spec:
+# https://github.com/libbpf/libbpf/commit/f90a9c487d75
+# https://github.com/terrapkg/packages/commit/62de07a285
+cat >/tmp/scx-libbpf-u128.txt <<'EOF'
+for h in $(find . %{_builddir} -path '*/libbpf-sys-*/libbpf/include/linux/types.h' 2>/dev/null | sort -u); do
+  grep -q '__u128' "$h" || sed -i '/#include <asm\/posix_types.h>/a\
+\
+#ifdef __SIZEOF_INT128__\
+typedef __signed__ __int128 __s128 __attribute__((aligned(16)));\
+typedef unsigned __int128 __u128 __attribute__((aligned(16)));\
+#endif' "$h"
+done
+EOF
+sed -i '/^%cargo_prep_online$/r /tmp/scx-libbpf-u128.txt' "${SPEC}"
+rm -f /tmp/scx-libbpf-u128.txt
+
+grep -q '__u128' "${SPEC}" || {
+  echo "ERROR: failed to add libbpf __u128 backport to scx-scheds spec"
+  exit 1
+}
+
 rpmspec -P "${SPEC}" >/dev/null
 
 dnf -y builddep "${SPEC}"
